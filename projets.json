@@ -1,0 +1,144 @@
+{
+  "contact": {
+    "email": "ton.email@exemple.fr",
+    "instagram": "@ton_compte",
+    "instagram_url": "",
+    "zone": "Île-de-France · à distance"
+  },
+  "projets": {
+    "3d": [
+      {
+        "titre": "La chambre de ce portfolio",
+        "tags": [
+          "Blender",
+          "Cycles",
+          "2026"
+        ],
+        "format": "paysage",
+        "images": [
+          "projets/3d/chambre-portfolio.jpg"
+        ],
+        "texte": "La pièce que tu explores : modélisation, éclairage d'ambiance aux lampes orange et rendu photoréaliste."
+      },
+      {
+        "titre": "Histoires dystopiques",
+        "tags": [
+          "Blender",
+          "Instagram",
+          "2026"
+        ],
+        "format": "portrait",
+        "images": [],
+        "texte": "Une série de vidéos courtes pour Instagram : une histoire racontée en audio, avec en fond une illustration 3D créée pour chaque récit."
+      }
+    ],
+    "photos": [
+      {
+        "titre": "Shooting",
+        "tags": [
+          "Photo",
+          "Retouche"
+        ],
+        "format": "paysage",
+        "images": [],
+        "texte": "Le contexte du shooting, l'intention et la sélection finale."
+      },
+      {
+        "titre": "Série photo",
+        "tags": [
+          "Photo"
+        ],
+        "format": "portrait",
+        "images": [],
+        "texte": "Une série autour d'un thème ou d'un lieu."
+      }
+    ],
+    "videos": [
+      {
+        "titre": "Le Zeppelin · Teaser & ouverture",
+        "tags": [
+          "Bar · Châtenay",
+          "Reel Instagram",
+          "Nov. 2026"
+        ],
+        "format": "portrait",
+        "images": [],
+        "video": "",
+        "lien": "",
+        "texte_lien": "Voir le reel sur Instagram",
+        "texte": "Le premier reel du compte du bar : un teaser puis la soirée d'ouverture du 30 octobre, au format « si vous habitez Châtenay… », avec voix off. Tournage, montage et voix faits de A à Z.",
+        "stats": [
+          {
+            "chiffre": "—",
+            "label": "Vues"
+          },
+          {
+            "chiffre": "—",
+            "label": "Partages"
+          },
+          {
+            "chiffre": "—",
+            "label": "Nouveaux abonnés"
+          }
+        ]
+      },
+      {
+        "titre": "Le Zeppelin · Reels humoristiques",
+        "tags": [
+          "Bar · Châtenay",
+          "Série"
+        ],
+        "statut": "En cours",
+        "format": "portrait",
+        "images": [],
+        "texte": "La suite pour le bar : une série de reels drôles autour de l'ambiance billard et babyfoot."
+      }
+    ],
+    "ux-ui-design": [
+      {
+        "titre": "Application mobile",
+        "tags": [
+          "UX",
+          "UI",
+          "Maquettes"
+        ],
+        "format": "paysage",
+        "images": [],
+        "texte": "Parcours utilisateur, wireframes, puis maquettes haute fidélité et prototype cliquable."
+      },
+      {
+        "titre": "Site web",
+        "tags": [
+          "UI",
+          "Responsive"
+        ],
+        "format": "paysage",
+        "images": [],
+        "texte": "Arborescence, design des pages clés et adaptation mobile."
+      }
+    ],
+    "logos": [
+      {
+        "titre": "Marque de bougies",
+        "tags": [
+          "Logo",
+          "Identité",
+          "2026"
+        ],
+        "format": "paysage",
+        "images": [],
+        "texte": "Création du logo d'une marque de bougies : recherches, pistes graphiques, puis version finale et ses déclinaisons."
+      },
+      {
+        "titre": "Identité de marque · projet d'école",
+        "tags": [
+          "Logo",
+          "Charte graphique"
+        ],
+        "format": "paysage",
+        "images": [],
+        "texte": "Une identité complète réalisée pendant la formation : logo, palette, typographies et mises en situation."
+      }
+    ]
+  }
+}

@@ -131,6 +131,20 @@ body.zoomed .panel { transform: none; transition-delay: .3s; }
 }
 @media (max-width: 520px) { .brand h1 { font-size: 24px; } .panel-body { padding: 26px 20px 32px; } .stats b { font-size: 17px; } }
 @media (prefers-reduced-motion: reduce) { *, *::before, *::after { animation: none !important; transition-duration: .01ms !important; } }
+
+.thumb img, .thumb video { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; z-index: 2; }
+.thumb.has-media { cursor: zoom-in; }
+.thumb.has-media::after { display: none; }
+.thumb .count { position: absolute; z-index: 3; right: 10px; bottom: 10px; font: 600 10px/1 var(--f-mono); letter-spacing: .1em; color: var(--ink); background: rgba(15, 10, 7, .7); padding: 6px 8px; border-radius: 999px; border: 0; }
+.thumb .play { position: absolute; z-index: 3; left: 50%; top: 50%; width: 54px; height: 54px; margin: -27px 0 0 -27px; border-radius: 50%; background: rgba(15, 10, 7, .65); border: 1px solid rgba(255, 255, 255, .35); padding: 0; }
+.thumb .play::before { content: ""; position: absolute; left: 21px; top: 16px; border-left: 17px solid var(--ink); border-top: 11px solid transparent; border-bottom: 11px solid transparent; }
+.card-link { justify-self: start; text-decoration: none; }
+.lightbox { position: fixed; inset: 0; z-index: 30; background: rgba(8, 5, 3, .94); display: none; align-items: center; justify-content: center; padding: 56px 16px 72px; }
+.lightbox.open { display: flex; }
+.lightbox .media { max-width: 100%; max-height: 100%; display: grid; place-items: center; }
+.lightbox .media img, .lightbox .media video { max-width: min(1400px, 100%); max-height: calc(100vh - 140px); border-radius: 10px; display: block; }
+.lb-top { position: absolute; top: 14px; left: 16px; right: 16px; display: flex; justify-content: space-between; align-items: center; gap: 12px; color: var(--muted); font: 400 11px/1 var(--f-mono); letter-spacing: .12em; text-transform: uppercase; }
+.lb-nav { position: absolute; bottom: 18px; left: 50%; transform: translateX(-50%); display: flex; gap: 10px; }
 </style>
 </head>
 <body>
@@ -171,6 +185,13 @@ body.zoomed .panel { transform: none; transition-delay: .3s; }
   </div>
 </aside>
 
+<div class="lightbox" id="lightbox" role="dialog" aria-modal="true" aria-label="Visionneuse de projet">
+  <div class="lb-top"><span id="lb-title"></span><button class="btn" id="lb-close" type="button">Fermer ✕</button></div>
+  <div class="media" id="lb-media"></div>
+  <div class="lb-nav"><button class="btn" id="lb-prev" type="button">← Précédent</button><span class="btn" id="lb-count" aria-live="polite"></span><button class="btn" id="lb-next" type="button">Suivant →</button></div>
+</div>
+
+
 <script>
 /* ============================================================
    ZONES CLIQUABLES — calculées depuis la caméra Blender
@@ -179,8 +200,8 @@ body.zoomed .panel { transform: none; transition-delay: .3s; }
 const HULLS = {"uxui": [[14.03, 63.27], [14.1, 30.54], [27.68, 30.45], [27.91, 31.95], [27.86, 63.19], [14.09, 63.37]], "3d": [[71.63, 30.67], [85.42, 30.42], [85.55, 61.97], [85.54, 63.3], [71.9, 63.41], [71.61, 31.99]], "about": [[44.69, 39.28], [44.84, 20.42], [52.85, 20.31], [52.89, 20.99], [52.99, 38.59], [52.97, 39.37], [44.77, 39.56]], "identite": [[40.27, 66.89], [40.39, 47.3], [59.47, 47.06], [59.74, 66.84], [50.73, 71.17], [49.5, 71.22], [40.45, 67.23]], "photo": [[24.36, 78.38], [24.57, 77.84], [30.45, 70.9], [31.09, 70.61], [31.48, 70.55], [32.91, 70.66], [35.29, 71.15], [35.68, 71.31], [36.32, 73.8], [36.4, 74.51], [36.39, 75.15], [35.76, 77.27], [35.36, 77.47], [29.1, 80.29], [28.6, 80.39], [28.03, 80.46], [27.17, 80.51], [26.35, 80.46], [25.85, 80.37], [25.39, 80.23], [25.0, 80.07], [24.59, 79.76]], "video": [[63.28, 64.3], [63.49, 62.47], [63.9, 61.44], [67.73, 55.15], [68.59, 54.36], [69.57, 54.2], [70.79, 54.38], [73.28, 56.36], [74.84, 61.33], [74.91, 66.69], [73.31, 76.97], [72.92, 79.2], [72.44, 79.39], [67.59, 77.73], [67.12, 77.38], [63.6, 66.65], [63.32, 65.27]], "contact": [[42.13, 36.08], [42.45, 31.46], [43.08, 31.17], [43.93, 31.04], [47.59, 31.54], [47.73, 34.35], [47.71, 37.03], [45.41, 38.82], [43.77, 38.88], [42.49, 38.66], [42.26, 37.27]], "lamp": [[3.14, 23.6], [3.17, 22.74], [3.24, 21.9], [3.36, 21.08], [3.53, 20.28], [3.73, 19.51], [3.97, 18.78], [4.27, 18.09], [4.58, 17.47], [4.94, 16.89], [5.33, 16.39], [5.74, 15.95], [6.18, 15.59], [6.63, 15.29], [7.09, 15.08], [7.56, 14.96], [8.05, 14.92], [8.61, 14.96], [9.09, 15.08], [9.55, 15.29], [10.01, 15.59], [10.45, 15.95], [10.86, 16.39], [11.25, 16.9], [11.61, 17.48], [11.92, 18.11], [12.25, 18.9], [12.49, 19.63], [12.7, 20.4], [12.86, 21.19], [12.97, 22.01], [13.03, 22.85], [13.06, 23.7], [13.03, 24.55], [12.96, 25.39], [12.84, 26.22], [12.69, 27.01], [12.48, 27.78], [12.23, 28.51], [11.94, 29.19], [11.62, 29.82], [11.27, 30.39], [10.87, 30.89], [10.47, 31.33], [10.03, 31.69], [9.59, 31.99], [9.12, 32.19], [8.57, 32.35], [8.09, 32.39], [7.6, 32.35], [7.13, 32.22], [6.66, 32.01], [6.2, 31.72], [5.76, 31.35], [5.36, 30.92], [4.96, 30.4], [4.55, 29.73], [4.23, 29.1], [3.95, 28.42], [3.7, 27.69], [3.5, 26.92], [3.34, 26.12], [3.23, 25.29], [3.17, 24.45]]};
 
 /* ============================================================
-   CONTENU — c'est ici que tu remplaceras les projets.
-   ratio : "portrait" (9:16, reels) ou "land" (4:3)
+   CONTENU PAR DÉFAUT — les vrais projets sont dans projets.json
+   (tu n'as pas besoin de modifier ce fichier pour ajouter un projet)
    ============================================================ */
 const SECTIONS = {
   identite: { object: "L'écran", nav: "Identité",
@@ -256,15 +277,30 @@ Object.entries(HULLS).forEach(([key, pts]) => {
 });
 
 /* ---------- Panneau ---------- */
-function renderProjects(sec) {
-  return `<div class="cards">${sec.projects.map(p => `
+function mediaList(p) {
+  const list = (p.images || []).map(src => ({ type: "image", src }));
+  if (p.video) list.unshift({ type: "video", src: p.video, poster: (p.images || [])[0] });
+  return list;
+}
+function renderProjects(sec, key) {
+  return `<div class="cards">${sec.projects.map((p, i) => {
+    const media = mediaList(p), first = media[0];
+    let thumb = `<span>Visuel à intégrer</span>`;
+    if (first && first.type === "image") thumb = `<img src="${esc(first.src)}" alt="${esc(p.title)}" loading="lazy">`;
+    if (first && first.type === "video") thumb = first.poster
+      ? `<img src="${esc(first.poster)}" alt="${esc(p.title)}" loading="lazy"><span class="play" aria-hidden="true"></span>`
+      : `<video src="${esc(first.src)}#t=0.5" muted playsinline preload="metadata"></video><span class="play" aria-hidden="true"></span>`;
+    const count = media.length > 1 ? `<span class="count">${media.length} visuels</span>` : "";
+    const open = media.length ? ` has-media" role="button" tabindex="0" data-lb="${key}:${i}" aria-label="Voir ${esc(p.title)} en grand` : "";
+    return `
     <article class="card">
-      <div class="thumb ${p.ratio}"><span>Visuel à intégrer</span></div>
-      <div class="meta">${p.status ? `<span class="status">${esc(p.status)}</span>` : ""}${p.meta.map(m => `<span>${esc(m)}</span>`).join("")}</div>
+      <div class="thumb ${p.ratio}${open}">${thumb}${count}</div>
+      <div class="meta">${p.status ? `<span class="status">${esc(p.status)}</span>` : ""}${(p.meta || []).map(m => `<span>${esc(m)}</span>`).join("")}</div>
       <h3>${esc(p.title)}</h3>
-      <p>${esc(p.text)}</p>
-      ${p.stats ? `<div class="stats">${p.stats.map(([v, l]) => `<div><b>${esc(v)}</b><small>${esc(l)}</small></div>`).join("")}</div>` : ""}
-    </article>`).join("")}</div>`;
+      <p>${esc(p.text || "")}</p>
+      ${p.stats && p.stats.length ? `<div class="stats">${p.stats.map(([v, l]) => `<div><b>${esc(v)}</b><small>${esc(l)}</small></div>`).join("")}</div>` : ""}
+      ${p.link ? `<a class="btn card-link" href="${esc(p.link)}" target="_blank" rel="noopener">${esc(p.linkLabel || "Voir le projet")} ↗</a>` : ""}
+    </article>`; }).join("")}</div>`;
 }
 const renderAbout = () => `
   <p class="label">Ce que je fais</p>
@@ -280,10 +316,12 @@ const renderAbout = () => `
     <li><span>Blender</span><span>3D</span></li>
     <li><span>DJI Osmo Pocket 3</span><span>vidéo</span></li>
   </ul>`;
+let CONTACT = { email: "ton.email@exemple.fr", instagram: "@ton_compte", instagram_url: "", zone: "Île-de-France · à distance" };
+const todo = v => /exemple|ton_compte/.test(v) ? `<span class="todo">à compléter</span>` : "";
 const renderContact = () => `
-  <div class="contact-line"><div><small>Email</small><strong>ton.email@exemple.fr<span class="todo">à compléter</span></strong></div><button class="btn" type="button" data-copy="ton.email@exemple.fr">Copier</button></div>
-  <div class="contact-line"><div><small>Instagram</small><strong>@ton_compte<span class="todo">à compléter</span></strong></div></div>
-  <div class="contact-line"><div><small>Zone</small><strong>Île-de-France · à distance</strong></div></div>`;
+  <div class="contact-line"><div><small>Email</small><strong>${esc(CONTACT.email)}${todo(CONTACT.email)}</strong></div><button class="btn" type="button" data-copy="${esc(CONTACT.email)}">Copier</button></div>
+  <div class="contact-line"><div><small>Instagram</small><strong>${esc(CONTACT.instagram)}${todo(CONTACT.instagram)}</strong></div>${CONTACT.instagram_url ? `<a class="btn" href="${esc(CONTACT.instagram_url)}" target="_blank" rel="noopener">Ouvrir ↗</a>` : ""}</div>
+  <div class="contact-line"><div><small>Zone</small><strong>${esc(CONTACT.zone)}</strong></div></div>`;
 
 let current = null;
 const panel = $("#panel"), scene = $("#scene"), viewport = $("#viewport"), tip = $("#tip");
@@ -308,7 +346,7 @@ function open(key, fromHash) {
   current = key; highlight(key, true); tip.classList.remove("show");
   $("#p-crumb").innerHTML = `<b>${esc(sec.object)}</b> · ${String(ORDER.indexOf(key) + 1).padStart(2, "0")}/${String(ORDER.length).padStart(2, "0")}`;
   $("#p-body").innerHTML = `<h2 id="p-title">${esc(sec.title)}</h2><p class="intro">${esc(sec.intro)}</p>` +
-    (key === "about" ? renderAbout() : key === "contact" ? renderContact() : renderProjects(sec));
+    (key === "about" ? renderAbout() : key === "contact" ? renderContact() : renderProjects(sec, key));
   $("#p-body").scrollTop = 0;
   document.body.classList.add("zoomed"); panel.setAttribute("aria-hidden", "false");
   mx = my = 0; $("#parallax").style.transform = "";
@@ -403,6 +441,55 @@ if (!reduce) (function dust() {
   }
   requestAnimationFrame(dust);
 })();
+
+/* ---------- Projets chargés depuis projets.json ---------- */
+function applyData(d) {
+  if (d.contact) CONTACT = Object.assign(CONTACT, d.contact);
+  const P = d.projets || {};
+  const ALIAS = { "3d": "3d", "photos": "photo", "videos": "video", "ux-ui-design": "uxui", "logos": "identite" };
+  for (const name of Object.keys(P)) {
+    const k = ALIAS[name] || name;
+    if (!SECTIONS[k] || !Array.isArray(P[name])) continue;
+    SECTIONS[k].projects = P[name].map(p => ({
+      title: p.titre || "Sans titre", meta: p.tags || [], text: p.texte || "",
+      ratio: (p.format || "").startsWith("portrait") ? "portrait" : "land",
+      images: p.images || [], video: p.video || "", link: p.lien || "", linkLabel: p.texte_lien || "",
+      status: p.statut || "", stats: (p.stats || []).map(x => Array.isArray(x) ? x : [x.chiffre, x.label])
+    }));
+  }
+  if (current) { const k = current; current = null; open(k, true); }
+}
+fetch("projets.json", { cache: "no-cache" }).then(r => r.ok ? r.json() : null).then(d => d && applyData(d)).catch(() => {});
+
+/* ---------- Visionneuse ---------- */
+const lb = $("#lightbox"), lbMedia = $("#lb-media");
+let lbList = [], lbIdx = 0, lbReturn = null;
+function lbShow() {
+  const m = lbList[lbIdx];
+  lbMedia.innerHTML = m.type === "video"
+    ? `<video src="${esc(m.src)}" controls autoplay playsinline ${m.poster ? `poster="${esc(m.poster)}"` : ""}></video>`
+    : `<img src="${esc(m.src)}" alt="">`;
+  $("#lb-count").textContent = `${lbIdx + 1} / ${lbList.length}`;
+  $("#lb-prev").style.visibility = $("#lb-next").style.visibility = $("#lb-count").style.visibility = lbList.length > 1 ? "visible" : "hidden";
+}
+function lbOpen(key, i, from) {
+  const p = SECTIONS[key].projects[i]; lbList = mediaList(p); if (!lbList.length) return;
+  lbIdx = 0; lbReturn = from; $("#lb-title").textContent = p.title; lb.classList.add("open"); lbShow(); $("#lb-close").focus();
+}
+function lbClose() { lb.classList.remove("open"); lbMedia.innerHTML = ""; if (lbReturn) lbReturn.focus(); }
+$("#p-body").addEventListener("click", e => { const t = e.target.closest("[data-lb]"); if (t) { const [k, i] = t.dataset.lb.split(":"); lbOpen(k, +i, t); } });
+$("#p-body").addEventListener("keydown", e => { const t = e.target.closest("[data-lb]"); if (t && (e.key === "Enter" || e.key === " ")) { e.preventDefault(); const [k, i] = t.dataset.lb.split(":"); lbOpen(k, +i, t); } });
+$("#lb-close").addEventListener("click", lbClose);
+$("#lb-prev").addEventListener("click", () => { lbIdx = (lbIdx - 1 + lbList.length) % lbList.length; lbShow(); });
+$("#lb-next").addEventListener("click", () => { lbIdx = (lbIdx + 1) % lbList.length; lbShow(); });
+lb.addEventListener("click", e => { if (e.target === lb) lbClose(); });
+addEventListener("keydown", e => {
+  if (!lb.classList.contains("open")) return;
+  e.stopImmediatePropagation();
+  if (e.key === "Escape") lbClose();
+  if (e.key === "ArrowRight") $("#lb-next").click();
+  if (e.key === "ArrowLeft") $("#lb-prev").click();
+}, true);
 
 /* ---------- Lien direct (#video, #3d…) ---------- */
 function fromHash() { const k = location.hash.slice(1); if (SECTIONS[k]) open(k, true); else if (current) close(); }

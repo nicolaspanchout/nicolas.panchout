@@ -1,0 +1,1 @@
+Mets ici tes maquettes UX/UI (JPG ou PNG). Ensuite, ajoute le projet dans projets.json, categorie "ux-ui-design".

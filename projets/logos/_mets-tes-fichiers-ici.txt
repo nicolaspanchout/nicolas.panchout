@@ -1,0 +1,1 @@
+Mets ici tes logos et identites (JPG ou PNG). Ensuite, ajoute le projet dans projets.json, categorie "logos".

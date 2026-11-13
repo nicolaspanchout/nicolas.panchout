@@ -1,0 +1,1 @@
+Mets ici tes photos (JPG). Ensuite, ajoute le projet dans projets.json, categorie "photos".

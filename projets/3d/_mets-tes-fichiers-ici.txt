@@ -1,0 +1,1 @@
+Mets ici tes rendus 3D (JPG). Ensuite, ajoute le projet dans projets.json, categorie "3d".

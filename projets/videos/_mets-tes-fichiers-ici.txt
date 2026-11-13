@@ -1,0 +1,1 @@
+Mets ici tes videos (MP4, moins de 25 Mo) et leurs miniatures (JPG). Ensuite, ajoute le projet dans projets.json, categorie "videos".
